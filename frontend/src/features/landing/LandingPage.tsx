@@ -236,7 +236,7 @@ function BentoFeaturesSection() {
           {/* Feature 1: Large spanning */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.1 }}
-            className="md:col-span-2 md:row-span-2 rounded-3xl bg-white border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+            className="md:col-span-3 rounded-3xl bg-surface-100 border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-bl-[100px] -z-0 opacity-50 group-hover:scale-110 transition-transform duration-700" />
             <div className="relative z-10 h-full flex flex-col justify-between">
@@ -259,7 +259,7 @@ function BentoFeaturesSection() {
           {/* Feature 2: Small */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2 }}
-            className="rounded-3xl bg-white border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-3xl bg-surface-0 border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="w-12 h-12 rounded-xl bg-secondary-100 text-secondary-600 flex items-center justify-center mb-6">
               <Layers className="w-6 h-6" />
@@ -273,7 +273,7 @@ function BentoFeaturesSection() {
           {/* Feature 3: Small */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }}
-            className="rounded-3xl bg-white border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-3xl bg-surface-0 border border-surface-200/60 p-8 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="w-12 h-12 rounded-xl bg-warning-100 text-warning-600 flex items-center justify-center mb-6">
               <Award className="w-6 h-6" />
@@ -287,23 +287,23 @@ function BentoFeaturesSection() {
           {/* Feature 4: Medium wide */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.4 }}
-            className="md:col-span-3 rounded-3xl bg-surface-900 text-white p-8 md:p-12 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8"
+            className="md:col-span-3 rounded-3xl bg-primary-50 text-surface-900 p-8 md:p-12 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center gap-8"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-600/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-100/50 to-transparent" />
             <div className="relative z-10 flex-1">
-              <div className="flex items-center gap-2 text-danger-400 font-semibold text-sm uppercase tracking-wider mb-4">
+              <div className="flex items-center gap-2 text-danger-500 font-semibold text-sm uppercase tracking-wider mb-4">
                 <Shield className="w-4 h-4" /> Anti-Cheating Engine
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-4">Maintain complete exam integrity.</h3>
-              <p className="text-surface-300 max-w-xl">
+              <p className="text-surface-600 max-w-xl">
                 Our strict proctoring module detects tab switches, enforces fullscreen modes, blocks copy-pasting, and generates a timeline of suspicious activity for every candidate.
               </p>
             </div>
             <div className="relative z-10 w-full md:w-1/3 flex justify-center">
-              <div className="w-full max-w-[200px] aspect-square rounded-2xl bg-surface-800 border border-surface-700 p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-2 text-danger-400 text-xs font-mono"><Shield className="w-3 h-3"/> TAB SWITCH DETECTED</div>
-                <div className="flex items-center gap-2 text-warning-400 text-xs font-mono"><Target className="w-3 h-3"/> LOST FOCUS</div>
-                <div className="flex items-center gap-2 text-success-400 text-xs font-mono"><Check className="w-3 h-3"/> RESUMED</div>
+              <div className="w-full max-w-[200px] aspect-square rounded-2xl bg-surface-0 border border-surface-200 p-4 flex flex-col gap-3 shadow-sm">
+                <div className="flex items-center gap-2 text-danger-500 text-xs font-mono"><Shield className="w-3 h-3"/> TAB SWITCH DETECTED</div>
+                <div className="flex items-center gap-2 text-warning-500 text-xs font-mono"><Target className="w-3 h-3"/> LOST FOCUS</div>
+                <div className="flex items-center gap-2 text-success-500 text-xs font-mono"><Check className="w-3 h-3"/> RESUMED</div>
               </div>
             </div>
           </motion.div>
@@ -357,14 +357,14 @@ function HowItWorksSection() {
               className={`flex flex-col md:flex-row gap-8 items-center ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
             >
               <div className="flex-1 w-full text-center md:text-left">
-                <div className={`p-8 rounded-3xl bg-white border border-surface-200/50 shadow-sm hover:shadow-md transition-shadow ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}>
+                <div className={`p-8 rounded-3xl bg-surface-0 border border-surface-200/50 shadow-sm hover:shadow-md transition-shadow ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}>
                   <span className="text-4xl font-black text-surface-200 mb-4 block">{step.number}</span>
                   <h3 className="text-xl font-bold text-surface-900 mb-3">{step.title}</h3>
                   <p className="text-surface-500 text-sm leading-relaxed">{step.desc}</p>
                 </div>
               </div>
               {/* Center node */}
-              <div className="hidden md:flex relative z-10 w-16 h-16 rounded-full bg-white border-4 border-surface-50 items-center justify-center shadow-sm">
+              <div className="hidden md:flex relative z-10 w-16 h-16 rounded-full bg-surface-0 border-4 border-surface-50 items-center justify-center shadow-sm">
                 <div className="w-4 h-4 rounded-full bg-primary-500" />
               </div>
               <div className="flex-1 hidden md:block" />
@@ -404,7 +404,7 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-24 px-6 bg-white text-surface-900">
+    <section className="py-24 px-6 bg-surface-0 text-surface-900">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Don't just take our word for it</h2>
@@ -419,7 +419,7 @@ function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="p-6 rounded-2xl bg-surface-50 border border-surface-200/50 flex flex-col justify-between hover:border-surface-300 transition-colors"
+              className="p-6 rounded-2xl bg-surface-0 border border-surface-200/50 flex flex-col justify-between hover:border-surface-300 transition-colors"
             >
               <div>
                 <div className="flex gap-1 mb-4">
@@ -472,7 +472,7 @@ function PricingSection() {
   ];
 
   return (
-    <section className="py-24 px-6 bg-white">
+    <section className="py-24 px-6 bg-surface-0">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-surface-900 mb-4">Simple, transparent pricing</h2>
@@ -485,7 +485,7 @@ function PricingSection() {
               key={i} 
               className={`p-8 rounded-3xl border transition-all ${
                 plan.popular 
-                  ? 'bg-surface-50 border-primary-500 shadow-xl shadow-primary-500/10 relative scale-100 md:scale-105 z-10' 
+                  ? 'bg-surface-100 border-primary-500 shadow-xl shadow-primary-500/10 relative scale-100 md:scale-105 z-10' 
                   : 'bg-surface-50 border-surface-200/50 shadow-sm'
               }`}
             >
@@ -535,7 +535,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-surface-0 font-sans selection:bg-primary-500/30">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-surface-200/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-surface-0/80 backdrop-blur-md border-b border-surface-200/50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
@@ -553,7 +553,7 @@ export function LandingPage() {
               Log in
             </Link>
             <Link to="/signup">
-              <button className="px-4 py-2 bg-surface-900 text-white rounded-lg text-sm font-medium hover:bg-surface-800 transition-colors shadow-sm">
+              <button className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm">
                 Sign up free
               </button>
             </Link>
@@ -570,15 +570,14 @@ export function LandingPage() {
         <PricingSection />
         
         {/* Simple CTA Section */}
-        <section className="py-32 px-6 bg-surface-900 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-surface-700 to-transparent"></div>
+        <section className="py-32 px-6 bg-primary-50 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary-200 to-transparent"></div>
           
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to upgrade your assessments?</h2>
-            <p className="text-surface-300 mb-10 max-w-xl mx-auto text-lg">Join thousands of organizations using QuizForge to streamline their training and certification processes.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-surface-900 mb-6">Ready to upgrade your assessments?</h2>
+            <p className="text-surface-600 mb-10 max-w-xl mx-auto text-lg">Join thousands of organizations using QuizForge to streamline their training and certification processes.</p>
             <Link to="/signup">
-              <button className="px-8 py-4 bg-primary-500 hover:bg-primary-400 text-white rounded-xl text-base font-semibold shadow-[0_0_40px_rgba(var(--color-primary-500),0.4)] transition-all">
+              <button className="px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-base font-semibold shadow-xl shadow-primary-500/20 transition-all">
                 Get Started for Free
               </button>
             </Link>
@@ -587,13 +586,13 @@ export function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-950 border-t border-surface-800 py-12 px-6">
+      <footer className="bg-surface-0 border-t border-surface-200/50 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center border border-surface-700">
-              <Sparkles className="w-4 h-4 text-surface-400" />
+            <div className="w-8 h-8 rounded-lg bg-surface-100 flex items-center justify-center border border-surface-200">
+              <Sparkles className="w-4 h-4 text-primary-500" />
             </div>
-            <span className="font-bold text-surface-200 text-lg tracking-tight">QuizForge</span>
+            <span className="font-bold text-surface-900 text-lg tracking-tight">QuizForge</span>
           </div>
           <p className="text-surface-500 text-sm">© 2026 QuizForge Inc. All rights reserved.</p>
         </div>
