@@ -12,8 +12,9 @@ import {
   Tooltip, ResponsiveContainer, BarChart, Bar,
   PieChart, Pie, Cell,
 } from 'recharts';
-import { cn } from '@/lib/utils';
-import { mockDashboardStats, mockActivities, mockAssessments, mockAnalytics } from '@/lib/mock-data';
+import { mockDashboardStats, mockActivities, mockAnalytics } from '@/lib/mock-data';
+import { getAssessments } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 /* ============================================
    Stat Card Component
@@ -72,6 +73,10 @@ function StatCard({ title, value, suffix = '', icon: Icon, trend, gradient, dela
    Dashboard Page
    ============================================ */
 export function DashboardPage() {
+  const { data: assessments = [], isLoading: isLoadingAssessments } = useQuery({
+    queryKey: ['assessments'],
+    queryFn: getAssessments
+  });
   const CHART_COLORS = ['#3b82f6', '#a855f7', '#10b981', '#f97316', '#ef4444'];
 
   return (

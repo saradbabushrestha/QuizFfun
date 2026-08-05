@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Zap, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { register, login, getMe } from '@/lib/api';
+import { useAuthStore } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 function GithubIcon(props: any) {
   return (
@@ -15,6 +20,31 @@ export function SignUpPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  const registerMutation = useMutation({
+    mutationFn: async () => {
+      await register({ name, email, password, role: 'student' });
+      const { access_token } = await login({ email, password });
+      localStorage.setItem('token', access_token);
+      const user = await getMe();
+      return { user, token: access_token };
+    },
+    onSuccess: ({ user, token }) => {
+      setAuth(user, token);
+      toast.success('Account created successfully');
+      navigate('/app');
+    },
+    onError: () => {
+      toast.error('Failed to create account');
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    registerMutation.mutate();
+  };
 
   return (
     <motion.div
@@ -89,45 +119,51 @@ export function SignUpPage() {
             </div>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); window.location.href = '/app'; }} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-surface-500 mb-1.5">Full Name</label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-surface-900 ml-1">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full pl-10 pr-4 py-3 bg-surface-100 border border-surface-200/50 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-all"
+                  placeholder="John Doe"
+                  className="w-full pl-10 pr-4 py-3 bg-surface-50 hover:bg-surface-100 border border-surface-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-surface-900 placeholder:text-surface-400"
+                  required
+                  disabled={registerMutation.isPending}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-surface-500 mb-1.5">Email</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-surface-900 ml-1">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  className="w-full pl-10 pr-4 py-3 bg-surface-100 border border-surface-200/50 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-all"
+                  placeholder="name@company.com"
+                  className="w-full pl-10 pr-4 py-3 bg-surface-50 hover:bg-surface-100 border border-surface-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-surface-900 placeholder:text-surface-400"
+                  required
+                  disabled={registerMutation.isPending}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-surface-500 mb-1.5">Password</label>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-surface-900 ml-1">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8+ characters"
-                  className="w-full pl-10 pr-4 py-3 bg-surface-100 border border-surface-200/50 rounded-xl text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-all"
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-surface-50 hover:bg-surface-100 border border-surface-200/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-surface-900 placeholder:text-surface-400"
+                  required
+                  disabled={registerMutation.isPending}
                 />
               </div>
             </div>
@@ -136,10 +172,17 @@ export function SignUpPage() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium text-sm shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-shadow flex items-center justify-center gap-2 group"
+              disabled={registerMutation.isPending}
+              className="w-full mt-2 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 transition-all disabled:opacity-70"
             >
-              Create Account
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {registerMutation.isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </motion.button>
           </form>
 

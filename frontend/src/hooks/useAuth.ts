@@ -1,0 +1,50 @@
+import { create } from 'zustand';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar_url?: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setAuth: (user: User, token: string) => void;
+  logout: () => void;
+}
+
+// Check localStorage for initial state
+const getInitialState = () => {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  if (token && user) {
+    try {
+      return { token, user: JSON.parse(user), isAuthenticated: true };
+    } catch (e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }
+  
+  return { token: null, user: null, isAuthenticated: false };
+};
+
+export const useAuthStore = create<AuthState>((set) => ({
+  ...getInitialState(),
+  
+  setAuth: (user, token) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    set({ user, token, isAuthenticated: true });
+  },
+  
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+}));

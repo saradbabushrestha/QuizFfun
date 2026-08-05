@@ -7,7 +7,8 @@ import {
   Edit3, Trash2, Copy, ArrowUpRight, SlidersHorizontal,
 } from 'lucide-react';
 import { cn, DIFFICULTY_COLORS } from '@/lib/utils';
-import { mockQuestionBanks, mockQuestions } from '@/lib/mock-data';
+import { getQuestionBanks, getQuestions } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 import type { Question } from '@/types';
 
 /* ============================================
@@ -18,13 +19,24 @@ export function QuestionBanksPage() {
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'banks' | 'questions'>('banks');
 
-  const filteredBanks = mockQuestionBanks.filter(
-    (b) => b.name.toLowerCase().includes(search.toLowerCase())
+  const { data: banks = [], isLoading: isLoadingBanks } = useQuery({
+    queryKey: ['question-banks'],
+    queryFn: getQuestionBanks
+  });
+
+  const { data: questions = [], isLoading: isLoadingQuestions } = useQuery({
+    queryKey: ['questions', selectedBank],
+    queryFn: () => getQuestions(selectedBank || undefined),
+    enabled: !!selectedBank || viewMode === 'questions'
+  });
+
+  const filteredBanks = banks.filter(
+    (b: any) => b.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredQuestions = selectedBank
-    ? mockQuestions.filter((q) => q.bank_id === selectedBank)
-    : mockQuestions;
+    ? questions.filter((q: any) => q.bank_id === selectedBank)
+    : questions;
 
   const questionsToShow = filteredQuestions.filter(
     (q) => q.title.toLowerCase().includes(search.toLowerCase())

@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { mockQuestions } from '@/lib/mock-data';
+import { useMutation } from '@tanstack/react-query';
+import { createAssessment } from '@/lib/api';
+import { useAuthStore } from '@/hooks/useAuth';
 
 export function AssessmentBuilderPage() {
   const navigate = useNavigate();
@@ -40,9 +43,46 @@ export function AssessmentBuilderPage() {
     setSections([...sections, { id: String(sections.length + 1), title: `Section ${sections.length + 1}`, questions: [], collapsed: false }]);
   };
 
+  const user = useAuthStore((state) => state.user);
+
+  const createMutation = useMutation({
+    mutationFn: createAssessment,
+    onSuccess: () => {
+      toast.success('Assessment published!', { description: 'Your assessment is now available to students.' });
+      navigate('/app/assessments');
+    },
+    onError: () => {
+      toast.error('Failed to publish assessment');
+    }
+  });
+
   const handlePublish = () => {
-    toast.success('Assessment published!', { description: 'Your assessment is now available to students.' });
-    navigate('/app/assessments');
+    if (!title) {
+      toast.error('Please enter an assessment title');
+      return;
+    }
+    
+    createMutation.mutate({
+      title,
+      description,
+      status: 'published',
+      creator_id: user?.id,
+      settings: {
+        time_limit_minutes: timeLimit,
+        max_attempts: maxAttempts,
+        passing_score: passingScore,
+        shuffle_questions: shuffleQuestions
+      },
+      sections: sections.map(s => ({
+        id: s.id,
+        title: s.title,
+        questions: s.questions.map(q => ({
+          id: q.id,
+          points: q.points
+        }))
+      })),
+      tags: []
+    });
   };
 
   return (
