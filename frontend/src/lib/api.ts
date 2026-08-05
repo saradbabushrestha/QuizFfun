@@ -88,3 +88,8 @@ export const getCertificates = async () => {
   const { data } = await api.get('/certificates');
   return data;
 };
+
+export const getAnalyticsDashboard = async () => {
+  const { data } = await api.get('/analytics/dashboard');
+  return data;
+};

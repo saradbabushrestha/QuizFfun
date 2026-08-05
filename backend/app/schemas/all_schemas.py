@@ -131,3 +131,20 @@ class CertificateResponse(CertificateBase):
     
     class Config:
         from_attributes = True
+
+# Analytics
+class AnalyticsDashboardStats(BaseModel):
+    completion_rate: int
+    avg_score: int
+    attempts_this_month: int
+    total_students: int
+
+class AnalyticsDashboardResponse(BaseModel):
+    stats: AnalyticsDashboardStats
+    performance_trend: List[Dict[str, Any]]
+    difficulty_distribution: List[Dict[str, Any]]
+    question_type_distribution: List[Dict[str, Any]]
+    top_assessments: List[Dict[str, Any]]
+    topic_mastery: List[Dict[str, Any]]
+    score_distribution: List[Dict[str, Any]]
+    time_analysis: List[Dict[str, Any]]

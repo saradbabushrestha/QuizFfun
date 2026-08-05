@@ -10,11 +10,25 @@ import {
   PieChart, Pie, Cell, RadarChart, PolarGrid,
   PolarAngleAxis, PolarRadiusAxis, Radar,
 } from 'recharts';
-import { mockAnalytics, mockDashboardStats } from '@/lib/mock-data';
+import { useQuery } from '@tanstack/react-query';
+import { getAnalyticsDashboard } from '@/lib/api';
 
 const CHART_COLORS = ['#3b82f6', '#a855f7', '#10b981', '#f97316', '#ef4444'];
 
 export function AnalyticsPage() {
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['analytics'],
+    queryFn: getAnalyticsDashboard
+  });
+
+  if (isLoading) {
+    return <div className="space-y-8">Loading analytics...</div>;
+  }
+
+  if (!analytics) {
+    return <div className="space-y-8">No analytics data available.</div>;
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -49,10 +63,10 @@ export function AnalyticsPage() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Completion Rate', value: mockDashboardStats.completion_rate, suffix: '%', icon: Target, color: 'text-accent-400', gradient: 'from-accent-500 to-accent-600' },
-          { label: 'Avg Score', value: mockDashboardStats.avg_score, suffix: '%', icon: BarChart3, color: 'text-primary-400', gradient: 'from-primary-500 to-primary-600' },
-          { label: 'This Month', value: mockDashboardStats.attempts_this_month, suffix: '', icon: TrendingUp, color: 'text-secondary-400', gradient: 'from-secondary-500 to-secondary-600' },
-          { label: 'Active Students', value: mockDashboardStats.total_students, suffix: '', icon: Users, color: 'text-warning-400', gradient: 'from-warning-500 to-warning-600' },
+          { label: 'Completion Rate', value: analytics.stats.completion_rate, suffix: '%', icon: Target, color: 'text-accent-400', gradient: 'from-accent-500 to-accent-600' },
+          { label: 'Avg Score', value: analytics.stats.avg_score, suffix: '%', icon: BarChart3, color: 'text-primary-400', gradient: 'from-primary-500 to-primary-600' },
+          { label: 'This Month', value: analytics.stats.attempts_this_month, suffix: '', icon: TrendingUp, color: 'text-secondary-400', gradient: 'from-secondary-500 to-secondary-600' },
+          { label: 'Active Students', value: analytics.stats.total_students, suffix: '', icon: Users, color: 'text-warning-400', gradient: 'from-warning-500 to-warning-600' },
         ].map((metric, i) => (
           <motion.div
             key={i}
@@ -86,7 +100,7 @@ export function AnalyticsPage() {
           <h3 className="text-base font-semibold text-surface-900 mb-1">Performance Trend</h3>
           <p className="text-xs text-surface-500 mb-6">Average score over time</p>
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={mockAnalytics.performance_trend}>
+            <AreaChart data={analytics.performance_trend}>
               <defs>
                 <linearGradient id="analyticsGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
@@ -114,7 +128,7 @@ export function AnalyticsPage() {
           <h3 className="text-base font-semibold text-surface-900 mb-1">Topic Mastery</h3>
           <p className="text-xs text-surface-500 mb-6">Average score by topic</p>
           <ResponsiveContainer width="100%" height={280}>
-            <RadarChart data={mockAnalytics.topic_mastery}>
+            <RadarChart data={analytics.topic_mastery}>
               <PolarGrid stroke="rgba(255,255,255,0.05)" />
               <PolarAngleAxis dataKey="topic" tick={{ fill: '#71717a', fontSize: 10 }} />
               <PolarRadiusAxis tick={false} domain={[0, 100]} />
@@ -137,8 +151,8 @@ export function AnalyticsPage() {
           <p className="text-xs text-surface-500 mb-6">Distribution across assessments</p>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
-              <Pie data={mockAnalytics.question_type_distribution} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="count">
-                {mockAnalytics.question_type_distribution.map((_, index) => (
+              <Pie data={analytics.question_type_distribution} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="count">
+                {analytics.question_type_distribution.map((_: any, index: number) => (
                   <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
@@ -146,7 +160,7 @@ export function AnalyticsPage() {
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-2 mt-2">
-            {mockAnalytics.question_type_distribution.map((item, i) => (
+            {analytics.question_type_distribution.map((item: any, i: number) => (
               <div key={i} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 text-surface-500">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[i] }} />
@@ -168,7 +182,7 @@ export function AnalyticsPage() {
           <h3 className="text-base font-semibold text-surface-900 mb-1">Top Assessments</h3>
           <p className="text-xs text-surface-500 mb-6">By number of attempts</p>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={mockAnalytics.top_assessments} layout="vertical">
+            <BarChart data={analytics.top_assessments} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis type="number" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis type="category" dataKey="name" stroke="#71717a" fontSize={10} tickLine={false} axisLine={false} width={80} />
@@ -188,8 +202,8 @@ export function AnalyticsPage() {
           <h3 className="text-base font-semibold text-surface-900 mb-1">Difficulty Split</h3>
           <p className="text-xs text-surface-500 mb-6">Questions by difficulty</p>
           <div className="space-y-4 mt-8">
-            {mockAnalytics.difficulty_distribution.map((item, i) => {
-              const total = mockAnalytics.difficulty_distribution.reduce((s, d) => s + d.count, 0);
+            {analytics.difficulty_distribution.map((item: any, i: number) => {
+              const total = analytics.difficulty_distribution.reduce((s: number, d: any) => s + d.count, 0);
               const percentage = Math.round((item.count / total) * 100);
               const colors = ['#10b981', '#f97316', '#ef4444'];
 

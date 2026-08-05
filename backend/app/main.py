@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import api
+from app.api.endpoints import api, analytics
 from app.db.database import engine, Base
 
 # Create all tables (in a real app we would use Alembic migrations)
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(api.router, prefix=settings.API_V1_STR)
+app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["analytics"])
 
 @app.get("/")
 def root():
