@@ -15,6 +15,7 @@ import {
 import { mockDashboardStats, mockActivities, mockAnalytics } from '@/lib/mock-data';
 import { getAssessments } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 /* ============================================
    Stat Card Component
@@ -266,7 +267,7 @@ export function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {mockAssessments.slice(0, 4).map((assessment, i) => (
+            {(assessments || []).slice(0, 4).map((assessment: any, i: number) => (
               <motion.div
                 key={assessment.id}
                 initial={{ opacity: 0, x: -10 }}

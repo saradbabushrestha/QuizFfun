@@ -25,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
           }}
           richColors
         />
-      </BrowserRouter>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   </StrictMode>
 );

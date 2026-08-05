@@ -60,3 +60,31 @@ export const createAssessment = async (assessment: any) => {
   const { data } = await api.post('/assessments', assessment);
   return data;
 };
+
+export const startAttempt = async (assessmentId: string) => {
+  const { data } = await api.post('/attempts', { assessment_id: assessmentId });
+  return data;
+};
+
+export const saveAttempt = async (attemptId: string, answers: any, timeSpent: number) => {
+  const { data } = await api.put(`/attempts/${attemptId}`, {
+    answers,
+    time_spent_seconds: timeSpent
+  });
+  return data;
+};
+
+export const submitAttempt = async (attemptId: string) => {
+  const { data } = await api.post(`/attempts/${attemptId}/submit`);
+  return data;
+};
+
+export const getAttempt = async (attemptId: string) => {
+  const { data } = await api.get(`/attempts/${attemptId}`);
+  return data;
+};
+
+export const getCertificates = async () => {
+  const { data } = await api.get('/certificates');
+  return data;
+};

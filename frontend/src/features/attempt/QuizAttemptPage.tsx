@@ -7,28 +7,86 @@ import {
   Keyboard, BookOpen, ArrowRight, Send,
 } from 'lucide-react';
 import { cn, formatTime } from '@/lib/utils';
-import { mockAssessments, mockQuestions } from '@/lib/mock-data';
-import type { Question } from '@/types';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getAssessment, getQuestions, startAttempt, saveAttempt, submitAttempt } from '@/lib/api';
+import { useParams } from 'react-router-dom';
 
 export function QuizAttemptPage() {
   const navigate = useNavigate();
-  const assessment = mockAssessments[0];
-  const questions = mockQuestions.filter(q => q.bank_id === 'qb1');
+  const { id: assessmentId } = useParams();
+
+  const { data: assessment, isLoading: isLoadingAssessment } = useQuery({
+    queryKey: ['assessment', assessmentId],
+    queryFn: () => getAssessment(assessmentId!),
+    enabled: !!assessmentId,
+  });
+
+  const { data: attempt, isLoading: isLoadingAttempt } = useQuery({
+    queryKey: ['startAttempt', assessmentId],
+    queryFn: () => startAttempt(assessmentId!),
+    enabled: !!assessmentId,
+    refetchOnWindowFocus: false, // Don't restart attempt on focus
+  });
+
+  // Fetch all questions for all sections
+  const { data: questions = [], isLoading: isLoadingQuestions } = useQuery({
+    queryKey: ['questions'],
+    queryFn: () => getQuestions(),
+  });
+
+  const assessmentQuestions = [];
+  if (assessment && questions.length > 0) {
+    const qIds = new Set();
+    assessment.sections.forEach((s: any) => {
+      s.questions.forEach((q: any) => qIds.add(q.id));
+    });
+    assessmentQuestions.push(...questions.filter((q: any) => qIds.has(q.id)));
+  }
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
-  const [timeLeft, setTimeLeft] = useState((assessment.settings.time_limit_minutes || 60) * 60);
+  const [timeLeft, setTimeLeft] = useState(60 * 60);
   const [showNavigator, setShowNavigator] = useState(true);
   const [showHint, setShowHint] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
-  const currentQuestion = questions[currentIndex];
+  useEffect(() => {
+    if (assessment?.settings?.time_limit_minutes) {
+      setTimeLeft(assessment.settings.time_limit_minutes * 60);
+    }
+  }, [assessment]);
+
+  const currentQuestion = assessmentQuestions[currentIndex];
   const answered = Object.keys(answers).length;
-  const progress = (answered / questions.length) * 100;
+  const progress = assessmentQuestions.length > 0 ? (answered / assessmentQuestions.length) * 100 : 0;
+
+  const saveMutation = useMutation({
+    mutationFn: (data: { answers: any, timeSpent: number }) => saveAttempt(attempt?.id, data.answers, data.timeSpent),
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: () => submitAttempt(attempt?.id),
+    onSuccess: () => {
+      setTimeout(() => {
+        navigate(`/results/${attempt?.id}`);
+      }, 2000);
+    }
+  });
+
+  // Autosave
+  useEffect(() => {
+    if (attempt?.id && Object.keys(answers).length > 0) {
+      const timeout = setTimeout(() => {
+        saveMutation.mutate({ answers, timeSpent: 0 }); // timeSpent omitted for simplicity
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [answers, attempt?.id]);
 
   // Timer
   useEffect(() => {
+    if (isLoadingAssessment || !assessment) return;
+    
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 0) {
@@ -40,7 +98,7 @@ export function QuizAttemptPage() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isLoadingAssessment, assessment]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -73,8 +131,18 @@ export function QuizAttemptPage() {
     }
   }, [currentQuestion, answers]);
 
-  const goNext = () => setCurrentIndex(Math.min(currentIndex + 1, questions.length - 1));
-  const goPrev = () => setCurrentIndex(Math.max(currentIndex - 1, 0));
+  const goNext = useCallback(() => {
+    if (currentIndex < assessmentQuestions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    }
+  }, [currentIndex, assessmentQuestions.length]);
+
+  const goPrev = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  }, [currentIndex]);
+
   const toggleFlag = () => {
     const newFlagged = new Set(flagged);
     if (newFlagged.has(currentQuestion.id)) newFlagged.delete(currentQuestion.id);
@@ -83,13 +151,20 @@ export function QuizAttemptPage() {
   };
 
   const handleSubmit = () => {
-    setSubmitted(true);
-    setTimeout(() => navigate('/results/a1'), 2000);
+    submitMutation.mutate();
   };
+
+  if (isLoadingAssessment || isLoadingAttempt || isLoadingQuestions) {
+    return <div className="min-h-screen bg-surface-50 flex items-center justify-center">Loading attempt...</div>;
+  }
+  
+  if (!assessment || assessmentQuestions.length === 0) {
+    return <div className="min-h-screen bg-surface-50 flex items-center justify-center">Assessment not found or has no questions.</div>;
+  }
 
   const isTimeLow = timeLeft < 300; // 5 minutes
 
-  if (submitted) {
+  if (submitMutation.isSuccess) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -128,7 +203,7 @@ export function QuizAttemptPage() {
       <div className="h-14 border-b border-surface-200/50 bg-surface-0/80 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-30">
         <div className="flex items-center gap-4">
           <h2 className="text-sm font-semibold text-surface-900 truncate max-w-xs">{assessment.title}</h2>
-          <span className="text-xs text-surface-400">{currentIndex + 1} / {questions.length}</span>
+          <span className="text-xs text-surface-400">{currentIndex + 1} / {assessmentQuestions.length}</span>
         </div>
 
         {/* Timer */}
@@ -156,15 +231,6 @@ export function QuizAttemptPage() {
           >
             <Flag className="w-4 h-4" />
           </button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSubmit}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-xl text-sm font-medium shadow-lg shadow-accent-500/20"
-          >
-            <Send className="w-4 h-4" />
-            Submit
-          </motion.button>
         </div>
       </div>
 
@@ -196,12 +262,12 @@ export function QuizAttemptPage() {
                   <span className="px-2.5 py-1 bg-surface-100 border border-surface-200/50 rounded-lg text-xs font-medium text-surface-500">
                     Question {currentIndex + 1}
                   </span>
-                  <span className="text-xs text-surface-400">{currentQuestion.points} points</span>
+                  <h3 className="text-surface-900 font-medium">Question {currentIndex + 1} of {assessmentQuestions.length}</h3>
                   <span className={cn(
-                    'px-2 py-0.5 rounded text-[10px] font-medium border',
-                    currentQuestion.difficulty === 'easy' ? 'text-accent-400 bg-accent-500/10 border-accent-500/20' :
-                    currentQuestion.difficulty === 'medium' ? 'text-warning-400 bg-warning-500/10 border-warning-500/20' :
-                    'text-danger-400 bg-danger-500/10 border-danger-500/20'
+                    "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                    currentQuestion.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-600' :
+                    currentQuestion.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-600' :
+                    'bg-rose-500/10 text-rose-600'
                   )}>
                     {currentQuestion.difficulty}
                   </span>
@@ -214,44 +280,39 @@ export function QuizAttemptPage() {
                 <p className="text-surface-500 text-sm mb-8 whitespace-pre-wrap">{currentQuestion.body}</p>
 
                 {/* Options */}
-                {currentQuestion.options.length > 0 && (
+                {currentQuestion.options && currentQuestion.options.length > 0 && (
                   <div className="space-y-3">
-                    {currentQuestion.options.map((option, i) => {
+                    {currentQuestion.options.map((option: any) => {
                       const isSelected = currentQuestion.type === 'multiple_choice'
                         ? ((answers[currentQuestion.id] as string[]) || []).includes(option.id)
                         : answers[currentQuestion.id] === option.id;
 
                       return (
-                        <motion.button
+                        <button
                           key={option.id}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
                           onClick={() => selectAnswer(option.id)}
                           className={cn(
-                            'w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all',
+                            "w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-4 group",
                             isSelected
-                              ? 'border-primary-500/50 bg-primary-500/5'
-                              : 'border-surface-200/50 hover:border-surface-300 bg-surface-50'
+                              ? "border-primary-500 bg-primary-50"
+                              : "border-surface-200 hover:border-primary-200 hover:bg-surface-50"
                           )}
                         >
                           <div className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium shrink-0 transition-all',
+                            "w-6 h-6 rounded flex items-center justify-center text-xs font-medium border transition-colors",
                             isSelected
-                              ? 'bg-primary-500 text-white'
-                              : 'bg-surface-200/50 text-surface-500'
+                              ? "bg-primary-500 border-primary-500 text-white"
+                              : "border-surface-300 text-surface-500 group-hover:border-primary-300"
                           )}>
-                            {isSelected ? <Check className="w-4 h-4" /> : String.fromCharCode(65 + i)}
+                            {String.fromCharCode(65 + option.order)}
                           </div>
                           <span className={cn(
-                            'text-sm transition-colors',
-                            isSelected ? 'text-surface-900 font-medium' : 'text-surface-700'
+                            "flex-1",
+                            isSelected ? "text-primary-900 font-medium" : "text-surface-700"
                           )}>
                             {option.text}
                           </span>
-                          <span className="ml-auto text-xs text-surface-300 font-mono">
-                            {i + 1}
-                          </span>
-                        </motion.button>
+                        </button>
                       );
                     })}
                   </div>
@@ -322,20 +383,24 @@ export function QuizAttemptPage() {
                     Previous
                   </motion.button>
 
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={currentIndex === questions.length - 1 ? handleSubmit : goNext}
-                    className={cn(
-                      'flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all',
-                      currentIndex === questions.length - 1
-                        ? 'bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-lg shadow-accent-500/20'
-                        : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/20'
-                    )}
-                  >
-                    {currentIndex === questions.length - 1 ? 'Submit' : 'Next'}
-                    {currentIndex === questions.length - 1 ? <Send className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </motion.button>
+                  {currentIndex === assessmentQuestions.length - 1 ? (
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitMutation.isPending}
+                      className="flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors"
+                    >
+                      {submitMutation.isPending ? 'Submitting...' : 'Submit Assessment'}
+                      <Send className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={goNext}
+                      className="flex items-center gap-2 px-6 py-3 bg-surface-900 hover:bg-surface-800 text-white rounded-xl font-medium transition-colors"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -352,34 +417,37 @@ export function QuizAttemptPage() {
               transition={{ duration: 0.3 }}
               className="border-l border-surface-200/50 bg-surface-50/50 overflow-hidden"
             >
-              <div className="p-4">
+              <div className="p-4 flex flex-col h-full">
                 <h4 className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">Questions</h4>
-                <div className="grid grid-cols-4 gap-2">
-                  {questions.map((q, i) => {
-                    const isAnswered = q.id in answers;
-                    const isFlagged = flagged.has(q.id);
-                    const isCurrent = i === currentIndex;
+                <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+                  <div className="grid grid-cols-5 gap-2">
+                    {assessmentQuestions.map((q, index) => {
+                      const isAnswered = !!answers[q.id];
+                      const isFlagged = flagged.has(q.id);
+                      const isActive = currentIndex === index;
 
-                    return (
-                      <motion.button
-                        key={q.id}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setCurrentIndex(i)}
-                        className={cn(
-                          'w-10 h-10 rounded-xl text-xs font-medium relative transition-all',
-                          isCurrent ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' :
-                          isAnswered ? 'bg-accent-500/10 text-accent-400 border border-accent-500/20' :
-                          'bg-surface-100 text-surface-500 border border-surface-200/50 hover:border-surface-300'
-                        )}
-                      >
-                        {i + 1}
-                        {isFlagged && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-warning-400 rounded-full" />
-                        )}
-                      </motion.button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={q.id}
+                          onClick={() => setCurrentIndex(index)}
+                          className={cn(
+                            "aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all relative",
+                            isActive
+                              ? "bg-primary-500 text-white shadow-lg shadow-primary-500/25"
+                              : isAnswered
+                                ? "bg-primary-50 text-primary-600 border border-primary-200"
+                                : "bg-surface-100 text-surface-500 hover:bg-surface-200",
+                            isFlagged && !isActive && "ring-2 ring-amber-400 ring-offset-2"
+                          )}
+                        >
+                          {index + 1}
+                          {isFlagged && isActive && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Legend */}

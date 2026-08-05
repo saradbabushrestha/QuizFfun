@@ -90,3 +90,44 @@ class AssessmentResponse(AssessmentBase):
     
     class Config:
         from_attributes = True
+
+# Attempts
+class AttemptBase(BaseModel):
+    status: str = "in_progress"
+    answers: Dict[str, Any] = {}
+    time_spent_seconds: int = 0
+
+class AttemptCreate(BaseModel):
+    assessment_id: str
+
+class AttemptUpdate(BaseModel):
+    answers: Optional[Dict[str, Any]] = None
+    time_spent_seconds: Optional[int] = None
+    status: Optional[str] = None
+
+class AttemptResponse(AttemptBase):
+    id: str
+    assessment_id: str
+    user_id: str
+    score: Optional[float] = None
+    percentage: Optional[float] = None
+    passed: Optional[bool] = None
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# Certificates
+class CertificateBase(BaseModel):
+    title: str
+    issued_at: datetime
+
+class CertificateResponse(CertificateBase):
+    id: str
+    user_id: str
+    assessment_id: str
+    attempt_id: str
+    
+    class Config:
+        from_attributes = True

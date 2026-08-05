@@ -8,6 +8,9 @@ from app.models import all_models
 from app.schemas import all_schemas
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.api.deps import get_current_user
+from app.core.grading import grade_attempt
+from datetime import datetime
+import uuid
 
 router = APIRouter()
 
@@ -103,3 +106,101 @@ def create_question(
     db.commit()
     db.refresh(db_question)
     return db_question
+
+# --- ATTEMPTS ---
+@router.get("/attempts/{attempt_id}", response_model=all_schemas.AttemptResponse)
+def get_attempt(attempt_id: str, db: Session = Depends(get_db), current_user: all_models.User = Depends(get_current_user)):
+    attempt = db.query(all_models.Attempt).filter(
+        all_models.Attempt.id == attempt_id, 
+        all_models.Attempt.user_id == current_user.id
+    ).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    return attempt
+
+@router.post("/attempts", response_model=all_schemas.AttemptResponse)
+def start_attempt(attempt_in: all_schemas.AttemptCreate, db: Session = Depends(get_db), current_user: all_models.User = Depends(get_current_user)):
+    assessment = db.query(all_models.Assessment).filter(all_models.Assessment.id == attempt_in.assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+        
+    db_attempt = all_models.Attempt(
+        id=f"att_{uuid.uuid4().hex[:8]}",
+        assessment_id=attempt_in.assessment_id,
+        user_id=current_user.id,
+        status="in_progress",
+        answers={}
+    )
+    db.add(db_attempt)
+    db.commit()
+    db.refresh(db_attempt)
+    return db_attempt
+
+@router.put("/attempts/{attempt_id}", response_model=all_schemas.AttemptResponse)
+def update_attempt(attempt_id: str, attempt_in: all_schemas.AttemptUpdate, db: Session = Depends(get_db), current_user: all_models.User = Depends(get_current_user)):
+    attempt = db.query(all_models.Attempt).filter(
+        all_models.Attempt.id == attempt_id, 
+        all_models.Attempt.user_id == current_user.id
+    ).first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+        
+    if attempt.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Cannot update a completed attempt")
+        
+    if attempt_in.answers is not None:
+        attempt.answers = attempt_in.answers
+    if attempt_in.time_spent_seconds is not None:
+        attempt.time_spent_seconds = attempt_in.time_spent_seconds
+        
+    db.commit()
+    db.refresh(attempt)
+    return attempt
+
+@router.post("/attempts/{attempt_id}/submit", response_model=all_schemas.AttemptResponse)
+def submit_attempt(attempt_id: str, db: Session = Depends(get_db), current_user: all_models.User = Depends(get_current_user)):
+    attempt = db.query(all_models.Attempt).filter(
+        all_models.Attempt.id == attempt_id, 
+        all_models.Attempt.user_id == current_user.id
+    ).first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+        
+    if attempt.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Attempt is already submitted")
+        
+    assessment = db.query(all_models.Assessment).filter(all_models.Assessment.id == attempt.assessment_id).first()
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+        
+    score, percentage, passed = grade_attempt(db, attempt, assessment)
+    
+    attempt.status = "submitted"
+    attempt.score = score
+    attempt.percentage = percentage
+    attempt.passed = passed
+    attempt.completed_at = datetime.utcnow()
+    
+    # Generate certificate if passed and certificates are enabled
+    # Assuming certificate generation is enabled by default or in settings
+    # We will generate it just based on pass condition for now
+    if passed:
+        cert = all_models.Certificate(
+            id=f"cert_{uuid.uuid4().hex[:8]}",
+            user_id=current_user.id,
+            assessment_id=assessment.id,
+            attempt_id=attempt.id,
+            title=f"Certificate of Completion: {assessment.title}"
+        )
+        db.add(cert)
+        
+    db.commit()
+    db.refresh(attempt)
+    return attempt
+
+# --- CERTIFICATES ---
+@router.get("/certificates", response_model=List[all_schemas.CertificateResponse])
+def get_certificates(db: Session = Depends(get_db), current_user: all_models.User = Depends(get_current_user)):
+    return db.query(all_models.Certificate).filter(all_models.Certificate.user_id == current_user.id).all()

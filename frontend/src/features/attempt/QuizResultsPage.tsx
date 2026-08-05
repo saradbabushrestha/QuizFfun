@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Check, X, Clock, Award, BarChart3, ArrowRight,
@@ -11,13 +11,80 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Cell,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { mockAttempts, mockQuestions, mockAnalytics } from '@/lib/mock-data';
+import { useQuery } from '@tanstack/react-query';
+import { getAttempt, getAssessment, getQuestions } from '@/lib/api';
+import { mockAnalytics } from '@/lib/mock-data';
 
 export function QuizResultsPage() {
   const navigate = useNavigate();
-  const attempt = mockAttempts[0];
-  const questions = mockQuestions.filter(q => q.bank_id === 'qb1');
-  const passed = attempt.percentage >= 70;
+  const { id: attemptId } = useParams();
+
+  const { data: attempt, isLoading: isLoadingAttempt } = useQuery({
+    queryKey: ['attempt', attemptId],
+    queryFn: () => getAttempt(attemptId!),
+    enabled: !!attemptId,
+  });
+
+  const { data: assessment, isLoading: isLoadingAssessment } = useQuery({
+    queryKey: ['assessment', attempt?.assessment_id],
+    queryFn: () => getAssessment(attempt!.assessment_id),
+    enabled: !!attempt?.assessment_id,
+  });
+
+  const { data: questions = [], isLoading: isLoadingQuestions } = useQuery({
+    queryKey: ['questions'],
+    queryFn: () => getQuestions(),
+  });
+
+  if (isLoadingAttempt || isLoadingAssessment || isLoadingQuestions) {
+    return <div className="min-h-screen bg-surface-50 flex items-center justify-center">Loading results...</div>;
+  }
+  
+  if (!attempt || !assessment) {
+    return <div className="min-h-screen bg-surface-50 flex items-center justify-center">Results not found.</div>;
+  }
+
+  const passed = attempt.passed;
+
+  const assessmentQuestions = [];
+  if (assessment && questions.length > 0) {
+    const qIds = new Set();
+    assessment.sections.forEach((s: any) => {
+      s.questions.forEach((q: any) => qIds.add(q.id));
+    });
+    assessmentQuestions.push(...questions.filter((q: any) => qIds.has(q.id)));
+  }
+
+  let totalPoints = 0;
+  let correctCount = 0;
+  let incorrectCount = 0;
+
+  assessmentQuestions.forEach((q: any) => {
+    let qPoints = 0;
+    assessment.sections.forEach((s: any) => {
+      const sq = s.questions.find((sqq: any) => sqq.id === q.id);
+      if (sq) qPoints = sq.points;
+    });
+    totalPoints += qPoints;
+
+    const userAnswer = attempt.answers[q.id];
+    let isCorrect = false;
+    
+    if (q.type === 'single_choice' || q.type === 'true_false') {
+      isCorrect = String(userAnswer) === String(q.correct_answer);
+    } else if (q.type === 'multiple_choice') {
+      if (Array.isArray(userAnswer) && Array.isArray(q.correct_answer)) {
+        isCorrect = JSON.stringify(userAnswer.map(String).sort()) === JSON.stringify(q.correct_answer.map(String).sort());
+      }
+    }
+    
+    if (userAnswer !== undefined) {
+      if (isCorrect) correctCount++;
+      else incorrectCount++;
+    } else {
+      incorrectCount++;
+    }
+  });
 
   return (
     <motion.div
@@ -99,7 +166,7 @@ export function QuizResultsPage() {
               {passed ? 'Congratulations! You Passed!' : 'Keep Practicing!'}
             </div>
             <p className="text-surface-500 text-sm">
-              You scored {attempt.score}/{attempt.total_points} points on JavaScript Mastery Test
+              You scored {attempt.score}/{totalPoints} points on {assessment.title}
             </p>
           </motion.div>
 
@@ -111,8 +178,8 @@ export function QuizResultsPage() {
             className="flex items-center justify-center gap-8 mt-8"
           >
             {[
-              { icon: CheckCircle2, label: 'Correct', value: attempt.responses.filter(r => r.is_correct).length, color: 'text-accent-400' },
-              { icon: XCircle, label: 'Incorrect', value: attempt.responses.filter(r => !r.is_correct).length, color: 'text-danger-400' },
+              { icon: CheckCircle2, label: 'Correct', value: correctCount, color: 'text-accent-400' },
+              { icon: XCircle, label: 'Incorrect', value: incorrectCount, color: 'text-danger-400' },
               { icon: Clock, label: 'Time', value: `${Math.floor(attempt.time_spent_seconds / 60)}m`, color: 'text-primary-400' },
             ].map((stat, i) => (
               <div key={i} className="text-center">
@@ -143,11 +210,11 @@ export function QuizResultsPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl text-sm font-medium text-white hover:shadow-lg hover:shadow-primary-500/20 transition-all"
                 onClick={() => navigate('/app/certificates')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-warning-500 to-warning-600 text-white rounded-xl text-sm font-medium shadow-lg shadow-warning-500/20"
               >
-                <Award className="w-4 h-4" />
-                View Certificate
+                <Download className="w-4 h-4" />
+                Certificate
               </motion.button>
             )}
           </motion.div>
@@ -168,7 +235,7 @@ export function QuizResultsPage() {
             <ResponsiveContainer width="100%" height={250}>
               <RadarChart data={mockAnalytics.topic_mastery}>
                 <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                <PolarAngleAxis dataKey="topic" tick={{ fill: '#71717a', fontSize: 10 }} />
+                <PolarAngleAxis dataKey="topic" tick={{ fill: '#71717a', fontSize: 12 }} />
                 <PolarRadiusAxis tick={false} domain={[0, 100]} />
                 <Radar
                   name="Score"
@@ -200,7 +267,7 @@ export function QuizResultsPage() {
                   formatter={(value: any) => [`${value}s`, 'Time']}
                 />
                 <Bar dataKey="avg_time" radius={[6, 6, 0, 0]}>
-                  {mockAnalytics.time_analysis.map((_, index) => (
+                    {mockAnalytics.time_analysis.map((_: any, index: number) => (
                     <Cell key={index} fill={index === 4 ? '#ef4444' : '#3b82f6'} />
                   ))}
                 </Bar>
@@ -218,7 +285,7 @@ export function QuizResultsPage() {
         >
           <h3 className="text-base font-semibold text-surface-900 mb-6">Question Review</h3>
           <div className="space-y-4">
-            {questions.map((question, i) => {
+                {assessmentQuestions.map((question: any, i: number) => {
               const response = attempt.responses[i];
               if (!response) return null;
 

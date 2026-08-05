@@ -5,18 +5,27 @@ import {
   QrCode, Shield, ExternalLink, Sparkles,
 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
-import { mockCertificates } from '@/lib/mock-data';
+import { useQuery } from '@tanstack/react-query';
+import { getCertificates } from '@/lib/api';
 
 export function CertificatesPage() {
   const [selectedCert, setSelectedCert] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  const filtered = mockCertificates.filter(
-    (c) => c.student_name.toLowerCase().includes(search.toLowerCase()) ||
-           c.assessment_title.toLowerCase().includes(search.toLowerCase())
+  const { data: certificates = [], isLoading } = useQuery({
+    queryKey: ['certificates'],
+    queryFn: getCertificates
+  });
+
+  const filtered = certificates.filter(
+    (c: any) => c.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  const cert = selectedCert ? mockCertificates.find(c => c.id === selectedCert) : null;
+  const cert = selectedCert ? certificates.find((c: any) => c.id === selectedCert) : null;
+
+  if (isLoading) {
+    return <div className="space-y-6">Loading certificates...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +45,7 @@ export function CertificatesPage() {
             transition={{ delay: 0.1 }}
             className="text-surface-500 text-sm mt-1"
           >
-            {mockCertificates.length} certificates issued
+            {certificates.length} certificates issued
           </motion.p>
         </div>
       </div>
@@ -62,7 +71,7 @@ export function CertificatesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Certificate List */}
         <div className="space-y-3">
-          {filtered.map((certificate, i) => (
+          {filtered.map((certificate: any, i: number) => (
             <motion.div
               key={certificate.id}
               initial={{ opacity: 0, y: 20 }}
@@ -83,14 +92,11 @@ export function CertificatesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-surface-900">{certificate.assessment_title}</h3>
-                  <p className="text-xs text-surface-500 mt-0.5">{certificate.student_name}</p>
+                  <p className="text-surface-500 mb-6">{certificate.title}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-xs text-surface-400 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       {formatDate(certificate.issued_at)}
-                    </span>
-                    <span className="text-xs text-accent-400 font-medium">
-                      {certificate.percentage}%
                     </span>
                   </div>
                 </div>
@@ -154,7 +160,12 @@ export function CertificatesPage() {
                       transition={{ delay: 0.4 }}
                     >
                       <p className="text-xs font-semibold text-warning-400 uppercase tracking-[0.3em] mb-2">Certificate of Achievement</p>
-                      <h2 className="text-xl font-bold text-surface-900 mb-1">QuizForge</h2>
+                      <h3 className="text-xl font-bold text-surface-900 mb-4 font-serif italic text-center">
+                        has successfully completed
+                      </h3>
+                      <h4 className="text-2xl font-bold text-accent-600 mb-6 font-serif text-center">
+                        {cert.title}
+                      </h4>
                     </motion.div>
 
                     <motion.div
@@ -176,9 +187,13 @@ export function CertificatesPage() {
                       transition={{ delay: 0.6 }}
                       className="flex items-center justify-between pt-6 border-t border-surface-200/30"
                     >
-                      <div className="text-left">
-                        <p className="text-xs text-surface-400">Date</p>
-                        <p className="text-xs font-medium text-surface-700">{formatDate(cert.issued_at)}</p>
+                      <div className="p-3 rounded-lg bg-surface-50 border border-surface-200/50">
+                        <p className="text-xs text-surface-400">Score</p>
+                        <p className="text-sm font-semibold text-surface-900">—</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-surface-50 border border-surface-200/50">
+                        <p className="text-xs text-surface-400">Grade</p>
+                        <p className="text-sm font-semibold text-surface-900">PASS</p>
                       </div>
 
                       {/* QR Code placeholder */}
@@ -188,7 +203,7 @@ export function CertificatesPage() {
 
                       <div className="text-right">
                         <p className="text-xs text-surface-400">Verification</p>
-                        <p className="text-xs font-mono font-medium text-surface-700">{cert.verification_code}</p>
+                        <p className="text-sm font-semibold text-surface-900 font-mono text-[10px] truncate">{cert.id}</p>
                       </div>
                     </motion.div>
                   </div>

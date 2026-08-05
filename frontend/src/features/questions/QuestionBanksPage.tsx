@@ -39,7 +39,7 @@ export function QuestionBanksPage() {
     : questions;
 
   const questionsToShow = filteredQuestions.filter(
-    (q) => q.title.toLowerCase().includes(search.toLowerCase())
+    (q: any) => q.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -60,7 +60,7 @@ export function QuestionBanksPage() {
             transition={{ delay: 0.1 }}
             className="text-surface-500 text-sm mt-1"
           >
-            {mockQuestionBanks.length} banks · {mockQuestions.length} questions
+            {banks.length} banks · {questions.length} questions
           </motion.p>
         </div>
         <Link to="/app/questions/new">
@@ -132,7 +132,7 @@ export function QuestionBanksPage() {
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            {filteredBanks.map((bank, i) => (
+            {filteredBanks.map((bank: any, i: number) => (
               <motion.div
                 key={bank.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -163,7 +163,7 @@ export function QuestionBanksPage() {
                       {bank.question_count} questions
                     </div>
                     <div className="flex gap-1">
-                      {bank.tags.slice(0, 2).map((tag) => (
+                      {bank.tags?.map((tag: any) => (
                         <span key={tag} className="px-2 py-0.5 bg-surface-200/50 text-surface-500 rounded-md text-[10px] font-medium">
                           {tag}
                         </span>
@@ -191,13 +191,13 @@ export function QuestionBanksPage() {
                 </button>
                 <ChevronRight className="w-3 h-3 text-surface-300" />
                 <span className="text-xs font-medium text-surface-900">
-                  {mockQuestionBanks.find(b => b.id === selectedBank)?.name}
+                  {banks.find((b: any) => b.id === selectedBank)?.name}
                 </span>
               </div>
             )}
 
             <div className="space-y-2">
-              {questionsToShow.map((question, i) => (
+              {questionsToShow.map((question: any, i: number) => (
                 <QuestionRow key={question.id} question={question} index={i} />
               ))}
               {questionsToShow.length === 0 && (
