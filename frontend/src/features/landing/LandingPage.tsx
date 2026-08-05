@@ -21,12 +21,12 @@ function TrustedBySection() {
   ];
 
   return (
-    <div className="py-10 border-t border-b border-surface-200/30 bg-surface-50/50 overflow-hidden flex flex-col items-center">
+    <div className="py-10 bg-surface-0 overflow-hidden flex flex-col items-center">
       <p className="text-xs font-semibold text-surface-400 uppercase tracking-widest mb-6 text-center">Trusted by forward-thinking teams worldwide</p>
       <div className="relative w-full max-w-7xl mx-auto overflow-hidden">
         {/* Fading edges */}
-        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-surface-50 to-transparent z-10" />
-        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-surface-50 to-transparent z-10" />
+        <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-surface-0 to-transparent z-10" />
+        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-surface-0 to-transparent z-10" />
         
         <motion.div 
           animate={{ x: [0, -1035] }}
@@ -107,7 +107,7 @@ function HeroSection() {
               <motion.button
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-8 py-4 bg-surface-900 text-white rounded-xl text-base font-medium shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto"
+                className="px-8 py-4 bg-primary-600 text-white rounded-xl text-base font-medium shadow-xl shadow-primary-500/20 hover:shadow-2xl hover:shadow-primary-500/30 transition-all w-full sm:w-auto"
               >
                 Start Free Trial
               </motion.button>
@@ -116,7 +116,7 @@ function HeroSection() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-center gap-2 px-8 py-4 bg-surface-0 hover:bg-surface-50 text-surface-900 rounded-xl text-base font-medium border border-surface-200 transition-all w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-surface-0 hover:bg-surface-50 text-surface-900 rounded-xl text-base font-medium border border-surface-200 shadow-sm transition-all w-full sm:w-auto"
               >
                 <Play className="w-4 h-4" />
                 Live Demo
@@ -337,7 +337,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-24 px-6 relative overflow-hidden bg-white">
+    <section className="py-24 px-6 relative overflow-hidden bg-surface-50">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-20">
           <h2 className="text-3xl font-bold text-surface-900 mb-4">A workflow that makes sense</h2>
@@ -357,7 +357,7 @@ function HowItWorksSection() {
               className={`flex flex-col md:flex-row gap-8 items-center ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
             >
               <div className="flex-1 w-full text-center md:text-left">
-                <div className={`p-8 rounded-3xl bg-surface-50 border border-surface-200/50 shadow-sm ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}>
+                <div className={`p-8 rounded-3xl bg-white border border-surface-200/50 shadow-sm hover:shadow-md transition-shadow ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'}`}>
                   <span className="text-4xl font-black text-surface-200 mb-4 block">{step.number}</span>
                   <h3 className="text-xl font-bold text-surface-900 mb-3">{step.title}</h3>
                   <p className="text-surface-500 text-sm leading-relaxed">{step.desc}</p>
@@ -404,11 +404,11 @@ function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-24 px-6 bg-surface-900 text-white">
+    <section className="py-24 px-6 bg-white text-surface-900">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Don't just take our word for it</h2>
-          <p className="text-surface-400">Join thousands of organizations running assessments on QuizForge.</p>
+          <p className="text-surface-500">Join thousands of organizations running assessments on QuizForge.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -419,17 +419,17 @@ function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="p-6 rounded-2xl bg-surface-800 border border-surface-700 flex flex-col justify-between"
+              className="p-6 rounded-2xl bg-surface-50 border border-surface-200/50 flex flex-col justify-between hover:border-surface-300 transition-colors"
             >
               <div>
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 text-warning-400 fill-warning-400" />)}
                 </div>
-                <p className="text-surface-300 text-sm leading-relaxed mb-6">"{t.quote}"</p>
+                <p className="text-surface-700 text-sm leading-relaxed mb-6">"{t.quote}"</p>
               </div>
               <div>
-                <p className="font-bold text-surface-50">{t.name}</p>
-                <p className="text-xs text-surface-400">{t.role}</p>
+                <p className="font-bold text-surface-900">{t.name}</p>
+                <p className="text-xs text-surface-500">{t.role}</p>
               </div>
             </motion.div>
           ))}
@@ -472,7 +472,7 @@ function PricingSection() {
   ];
 
   return (
-    <section className="py-24 px-6 bg-surface-50">
+    <section className="py-24 px-6 bg-white">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-surface-900 mb-4">Simple, transparent pricing</h2>
@@ -485,8 +485,8 @@ function PricingSection() {
               key={i} 
               className={`p-8 rounded-3xl border transition-all ${
                 plan.popular 
-                  ? 'bg-white border-primary-500 shadow-xl shadow-primary-500/10 relative scale-100 md:scale-105 z-10' 
-                  : 'bg-white border-surface-200 shadow-sm'
+                  ? 'bg-surface-50 border-primary-500 shadow-xl shadow-primary-500/10 relative scale-100 md:scale-105 z-10' 
+                  : 'bg-surface-50 border-surface-200/50 shadow-sm'
               }`}
             >
               {plan.popular && (
@@ -570,25 +570,32 @@ export function LandingPage() {
         <PricingSection />
         
         {/* Simple CTA Section */}
-        <section className="py-24 px-6 bg-white text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-surface-900 mb-6">Ready to upgrade your assessments?</h2>
-          <p className="text-surface-500 mb-8 max-w-xl mx-auto">Join thousands of organizations using QuizForge to streamline their training and certification processes.</p>
-          <Link to="/signup">
-            <button className="px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-base font-semibold shadow-lg shadow-primary-500/20 transition-all">
-              Get Started for Free
-            </button>
-          </Link>
+        <section className="py-32 px-6 bg-surface-900 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-surface-700 to-transparent"></div>
+          
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to upgrade your assessments?</h2>
+            <p className="text-surface-300 mb-10 max-w-xl mx-auto text-lg">Join thousands of organizations using QuizForge to streamline their training and certification processes.</p>
+            <Link to="/signup">
+              <button className="px-8 py-4 bg-primary-500 hover:bg-primary-400 text-white rounded-xl text-base font-semibold shadow-[0_0_40px_rgba(var(--color-primary-500),0.4)] transition-all">
+                Get Started for Free
+              </button>
+            </Link>
+          </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-50 border-t border-surface-200/50 py-12 px-6">
+      <footer className="bg-surface-950 border-t border-surface-800 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-surface-400" />
-            <span className="font-bold text-surface-400">QuizForge Inc.</span>
+            <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center border border-surface-700">
+              <Sparkles className="w-4 h-4 text-surface-400" />
+            </div>
+            <span className="font-bold text-surface-200 text-lg tracking-tight">QuizForge</span>
           </div>
-          <p className="text-surface-400 text-sm">© 2026 QuizForge. All rights reserved.</p>
+          <p className="text-surface-500 text-sm">© 2026 QuizForge Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>
