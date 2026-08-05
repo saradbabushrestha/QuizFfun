@@ -86,6 +86,7 @@ export function SignInPage() {
           {/* OAuth Buttons */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             <motion.button
+              onClick={() => window.location.href = 'http://localhost:8000/api/v1/auth/google/login'}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-surface-100 hover:bg-surface-200 border border-surface-200/50 rounded-xl text-sm font-medium text-surface-900 transition-colors"
@@ -99,6 +100,7 @@ export function SignInPage() {
               Google
             </motion.button>
             <motion.button
+              onClick={() => window.location.href = 'http://localhost:8000/api/v1/auth/github/login'}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="flex items-center justify-center gap-2 px-4 py-3 bg-surface-100 hover:bg-surface-200 border border-surface-200/50 rounded-xl text-sm font-medium text-surface-900 transition-colors"

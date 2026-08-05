@@ -14,7 +14,7 @@ class User(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True)
     role = Column(String, default="student") # admin, instructor, student
     avatar_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

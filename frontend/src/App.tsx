@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { SignInPage } from '@/features/auth/SignInPage';
 import { SignUpPage } from '@/features/auth/SignUpPage';
+import { AuthCallbackPage } from '@/features/auth/AuthCallbackPage';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { QuestionBanksPage } from '@/features/questions/QuestionBanksPage';
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Quiz Attempt (separate layout) */}
         <Route path="/attempt/:id" element={<QuizAttemptPage />} />
